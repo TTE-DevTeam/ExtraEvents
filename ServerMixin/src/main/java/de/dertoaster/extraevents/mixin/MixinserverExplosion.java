@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerExplosion.class)
-public abstract class MixinserverExplosion {
+public abstract class MixinServerExplosion {
 
   // Mixin into hurtEntities => Directly before the call of "entity.push()"
   // => Fire event, if event is cancelled, set the vector's value to zero
