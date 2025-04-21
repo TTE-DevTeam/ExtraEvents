@@ -24,9 +24,10 @@ public abstract class MixinServerExplosion {
       value = "INVOKE",
       target = "Lnet/minecraft/world/entity/Entity;push(Lnet/minecraft/world/phys/Vec3;)V",
       shift = At.Shift.BEFORE
-    )
+    ),
+    remap = false
   )
-  private void _extraEvents_mixinHurtEntities(
+  private void callTNTPropelEvent(
     CallbackInfo callbackInfo,
     @Local(name = "entity") Entity entity,
     @Local(name = "vec3") LocalRef<Vec3> vec3

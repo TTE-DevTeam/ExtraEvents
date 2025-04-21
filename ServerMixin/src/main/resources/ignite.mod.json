@@ -1,5 +1,5 @@
 {
-  "id": "de.dertoaster.extraevents",
+  "id": "tteextraevents",
   "version": "1.0.0",
   "mixins": [
     "mixins.de.dertoaster.extraevents.json"

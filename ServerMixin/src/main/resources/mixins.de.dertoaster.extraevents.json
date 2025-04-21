@@ -6,7 +6,7 @@
   "target": "@env(DEFAULT)",
   "compatibilityLevel": "JAVA_21",
   "server": [
-    "MixinServerExplosion",
-    "MixinDispenseBehavior"
+    "MixinBootstrap",
+    "MixinServerExplosion"
   ]
 }

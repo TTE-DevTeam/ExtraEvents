@@ -36,7 +36,7 @@ dependencies {
   compileOnlyApi(libs.jetbrains.annotations)
 }
 
-spotless {
+/*spotless {
   fun FormatExtension.applyCommon() {
     trimTrailingWhitespace()
     endWithNewline()
@@ -75,7 +75,7 @@ spotless {
   kotlin {
     applyCommon()
   }
-}
+}*/
 
 tasks {
   jar {
