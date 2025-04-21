@@ -40,3 +40,5 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+extraevents-api/.idea/
+.idea/
