@@ -22,9 +22,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.example.mixin.core;
+package de.dertoaster.extraevents.mixin.core;
 
 import java.util.logging.Logger;
+
+import net.minecraft.world.level.Explosion;
 import org.bukkit.craftbukkit.CraftServer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -40,4 +42,6 @@ public abstract class MixinCraftServer {
   private void onConstruction(CallbackInfo callback) {
     this.getLogger().info("Hello World!");
   }
+
+  Explosion
 }

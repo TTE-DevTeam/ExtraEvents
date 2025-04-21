@@ -22,27 +22,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.example.command;
+package de.dertoaster.extraevents.mixin.core;
 
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.defaults.BukkitCommand;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import de.dertoaster.extraevents.command.HelloCommand;
+import org.bukkit.command.Command;
+import org.bukkit.command.SimpleCommandMap;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-public final class HelloCommand extends BukkitCommand {
-  public HelloCommand(final @NonNull String name) {
-    super(name);
+@Mixin(value = SimpleCommandMap.class)
+public abstract class MixinSimpleCommandMap {
+  @Shadow public abstract boolean register(String fallbackPrefix, Command command);
 
-    this.setPermission("example.hello");
-  }
-
-  @Override
-  public boolean execute(final @NonNull CommandSender commandSender, final @NonNull String currentAlias, final @NonNull String[] args) {
-    if (!this.testPermission(commandSender)) {
-      return true;
-    } else {
-      commandSender.sendMessage("Hello " + commandSender.getName());
-    }
-
-    return false;
+  @Inject(method = "setDefaultCommands()V", at = @At("TAIL"), remap = false)
+  public void registerOwnCommands(CallbackInfo callback) {
+    this.register("bukkit", new HelloCommand("hello"));
   }
 }

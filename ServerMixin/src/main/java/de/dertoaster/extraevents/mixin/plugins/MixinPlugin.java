@@ -22,17 +22,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.example.mixin.plugins;
+package de.dertoaster.extraevents.mixin.plugins;
 
-import java.util.List;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
-public final class CorePlugin implements IMixinConfigPlugin {
+import java.util.List;
+import java.util.Set;
+
+public final class MixinPlugin implements IMixinConfigPlugin {
   @Override
   public void onLoad(final @NotNull String mixinPackage) {
   }

@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8.7",
+  "package": "de.dertoaster.extraevents.mixin",
+  "plugin": "de.dertoaster.extraevents.mixin.plugins.MixinPlugin",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_21",
+  "server": [
+    "de.dertoaster.extraevents.mixin.core.MixinCraftServer",
+    "de.dertoaster.extraevents.mixin.core.MixinSimpleCommandMap"
+  ]
+}
