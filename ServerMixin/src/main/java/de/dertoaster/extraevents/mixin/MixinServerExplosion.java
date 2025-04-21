@@ -36,7 +36,7 @@ public abstract class MixinServerExplosion {
       return;
     }
     Entity exploder = ((ServerExplosion)(Object)this).getDirectSourceEntity();
-    if (!(exploder.getBukkitEntity() instanceof TNTPrimed)) {
+    if (exploder != null && !(exploder.getBukkitEntity() instanceof TNTPrimed)) {
       exploder = null;
     }
     ExplosionPropellTNTEvent propellTNTEvent = new ExplosionPropellTNTEvent((TNTPrimed) entity.getBukkitEntity(), (TNTPrimed) exploder.getBukkitEntity());
