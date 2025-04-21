@@ -36,10 +36,11 @@ public abstract class MixinServerExplosion {
       return;
     }
     Entity exploder = ((ServerExplosion)(Object)this).getDirectSourceEntity();
-    if (exploder != null && !(exploder.getBukkitEntity() instanceof TNTPrimed)) {
-      exploder = null;
+    TNTPrimed exploderBukkit = null;
+    if (exploder != null && (exploder.getBukkitEntity() instanceof TNTPrimed)) {
+      exploderBukkit = (TNTPrimed) exploder.getBukkitEntity();
     }
-    ExplosionPropellTNTEvent propellTNTEvent = new ExplosionPropellTNTEvent((TNTPrimed) entity.getBukkitEntity(), (TNTPrimed) exploder.getBukkitEntity());
+    ExplosionPropellTNTEvent propellTNTEvent = new ExplosionPropellTNTEvent((TNTPrimed) entity.getBukkitEntity(), exploderBukkit);
     if (!propellTNTEvent.callEvent()) {
       vec3.set(Vec3.ZERO);
     }
