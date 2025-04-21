@@ -8,6 +8,7 @@ import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.level.ServerExplosion;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.entity.TNTPrimed;
+import org.bukkit.util.Vector;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -40,7 +41,8 @@ public abstract class MixinServerExplosion {
     if (exploder != null && (exploder.getBukkitEntity() instanceof TNTPrimed)) {
       exploderBukkit = (TNTPrimed) exploder.getBukkitEntity();
     }
-    ExplosionPropellTNTEvent propellTNTEvent = new ExplosionPropellTNTEvent((TNTPrimed) entity.getBukkitEntity(), exploderBukkit);
+    Vec3 vec3Raw = vec3.get();
+    ExplosionPropellTNTEvent propellTNTEvent = new ExplosionPropellTNTEvent((TNTPrimed) entity.getBukkitEntity(), exploderBukkit, new Vector(vec3Raw.x, vec3Raw.y, vec3Raw.z));
     if (!propellTNTEvent.callEvent()) {
       vec3.set(Vec3.ZERO);
     }
