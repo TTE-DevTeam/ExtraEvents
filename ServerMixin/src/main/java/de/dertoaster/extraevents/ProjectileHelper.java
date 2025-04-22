@@ -1,12 +1,18 @@
 package de.dertoaster.extraevents;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.PrimedTnt;
+import net.minecraft.world.entity.projectile.Projectile;
 
 public class ProjectileHelper {
 
   // Copy of AbstractHurtingProjectile
   public static boolean canHitEntity(Entity target) {
-    return internalCanHitEntity(target) && !target.noPhysics;
+    return
+           !(target instanceof PrimedTnt)
+        && !(target instanceof Projectile)
+        && internalCanHitEntity(target)
+        && !target.noPhysics;
   }
 
   // Copy of Projectile
