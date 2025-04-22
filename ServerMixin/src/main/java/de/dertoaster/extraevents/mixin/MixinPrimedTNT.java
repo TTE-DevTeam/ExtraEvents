@@ -35,7 +35,6 @@ public abstract class MixinPrimedTNT extends Entity {
   )
   private void mixinTick(CallbackInfo callbackInfo) {
     // 1) Make HitResult
-    // TODO: We could also use a much simpler collider since the TNT is rather large...
     HitResult hitResult = ProjectileUtil.getHitResultOnMoveVector(this, ProjectileHelper::canHitEntity, ClipContext.Block.COLLIDER);
 
     // 2) Hit result returned anything other than MISS?
