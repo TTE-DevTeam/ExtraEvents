@@ -56,9 +56,9 @@ public abstract class MixinPrimedTNT extends Entity {
     TNTHitEvent event = new TNTHitEvent((TNTPrimed) this.getBukkitEntity(), hitEntity, hitBlock, hitFace);
 
     // 4) If the event isnt cancelled, Remove the X and Z component of the velocity
-    /*if (event.callEvent()) {
-      this.setDeltaMovement(0, this.getDeltaMovement().y(), 0);
-    }*/
+    if (event.callEvent()) {
+      //this.setDeltaMovement(0, this.getDeltaMovement().y(), 0);
+    }
   }
 
 }
