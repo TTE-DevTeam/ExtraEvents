@@ -5,6 +5,9 @@ import de.dertoaster.extraevents.api.BresenhamUtil;
 import de.dertoaster.extraevents.api.event.TNTHitEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.server.commands.ForceLoadCommand;
+import net.minecraft.server.level.*;
+import net.minecraft.util.Unit;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.PrimedTnt;
@@ -12,10 +15,12 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.bukkit.World;
 import org.bukkit.craftbukkit.block.CraftBlock;
 import org.bukkit.entity.TNTPrimed;
 import org.spongepowered.asm.mixin.Mixin;
@@ -92,7 +97,18 @@ public abstract class MixinPrimedTNT extends Entity {
     // Run Bresenham-Line algorithm to find all chunks we cross
     for (BresenhamUtil.IntTuple chunkCoords : BresenhamUtil.bresenham2d(new BresenhamUtil.IntTuple(chunkPosCur), new BresenhamUtil.IntTuple(chunkPosNext))) {
       if (this.level().getChunkIfLoaded(chunkCoords.a(), chunkCoords.b()) == null) {
-        this.level().getChunk(chunkCoords.a(), chunkCoords.b());
+        ChunkPos chunkPos = new ChunkPos(chunkCoords.a(), chunkCoords.b());
+
+        ServerLevel level = this.level().getMinecraftWorld();
+
+        level.getChunkSource().addRegionTicket(
+          TicketType.PLUGIN,
+          chunkPos,
+          1,
+          Unit.INSTANCE
+        );
+
+        //System.out.println("Force loading chunk: " + chunkCoords.a() + " " + chunkCoords.b());
       }
     }
 
