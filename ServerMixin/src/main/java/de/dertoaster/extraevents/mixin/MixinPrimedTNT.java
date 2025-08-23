@@ -101,12 +101,20 @@ public abstract class MixinPrimedTNT extends Entity {
 
         ServerLevel level = this.level().getMinecraftWorld();
 
-        level.getChunkSource().addRegionTicket(
-          TicketType.PLUGIN,
-          chunkPos,
-          1,
-          Unit.INSTANCE
-        );
+        /*Seems to load the chunk, but entities in there arent processed...*/
+//        level.getChunkSource().addRegionTicket(
+//          TicketType.PLUGIN,
+//          chunkPos,
+//          1,
+//          Unit.INSTANCE
+//        );
+
+        // TODO: Perhaps replace with "setChunkForceLoaded", but that will require some cleanup later cause that is persistent!
+        this.getBukkitEntity().getWorld().loadChunk(chunkCoords.a(), chunkCoords.b());
+
+        /* Logic the World uses to handle forced chunks */
+        level.getChunk(chunkPos.x, chunkPos.z);
+        level.getChunkSource().updateChunkForced(chunkPos, true);
 
         //System.out.println("Force loading chunk: " + chunkCoords.a() + " " + chunkCoords.b());
       }
