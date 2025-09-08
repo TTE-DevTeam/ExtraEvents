@@ -1,5 +1,9 @@
 package de.dertoaster.extraevents.mixin;
 
+import ca.spottedleaf.moonrise.common.PlatformHooks;
+import ca.spottedleaf.moonrise.paper.PaperHooks;
+import ca.spottedleaf.moonrise.paper.util.BaseChunkSystemHooks;
+import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkHolderManager;
 import de.dertoaster.extraevents.ProjectileHelper;
 import de.dertoaster.extraevents.api.BresenhamUtil;
 import de.dertoaster.extraevents.api.event.TNTHitEvent;
@@ -14,6 +18,7 @@ import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.BlockHitResult;
@@ -109,12 +114,19 @@ public abstract class MixinPrimedTNT extends Entity {
 //          Unit.INSTANCE
 //        );
 
-        // TODO: Perhaps replace with "setChunkForceLoaded", but that will require some cleanup later cause that is persistent!
         this.getBukkitEntity().getWorld().loadChunk(chunkCoords.a(), chunkCoords.b());
 
         /* Logic the World uses to handle forced chunks */
-        level.getChunk(chunkPos.x, chunkPos.z);
+        LevelChunk levelChunk = level.getChunk(chunkPos.x, chunkPos.z);
         level.getChunkSource().updateChunkForced(chunkPos, true);
+
+        // Attempt to make the chunk tick entities
+        PlatformHooks.get().onChunkEntityTicking(levelChunk, new ChunkHolder(
+          chunkPos, ChunkHolderManager.MAX_TICKET_LEVEL, this.level(),
+          this.level().getLightEngine(), null, ((ServerChunkCache)this.level().getChunkSource()).chunkMap
+        ));
+
+        // TODO: Mark chunk as ticking or tick it manually...
 
         //System.out.println("Force loading chunk: " + chunkCoords.a() + " " + chunkCoords.b());
       }
