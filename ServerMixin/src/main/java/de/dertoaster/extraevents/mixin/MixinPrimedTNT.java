@@ -1,16 +1,13 @@
 package de.dertoaster.extraevents.mixin;
 
-import ca.spottedleaf.moonrise.common.PlatformHooks;
-import ca.spottedleaf.moonrise.paper.PaperHooks;
-import ca.spottedleaf.moonrise.paper.util.BaseChunkSystemHooks;
-import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkHolderManager;
 import de.dertoaster.extraevents.ProjectileHelper;
 import de.dertoaster.extraevents.api.BresenhamUtil;
 import de.dertoaster.extraevents.api.event.TNTHitEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
-import net.minecraft.server.commands.ForceLoadCommand;
-import net.minecraft.server.level.*;
+import net.minecraft.server.level.ServerChunkCache;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.TicketType;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -18,14 +15,11 @@ import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import org.bukkit.World;
 import org.bukkit.craftbukkit.block.CraftBlock;
 import org.bukkit.entity.TNTPrimed;
 import org.spongepowered.asm.mixin.Mixin;
@@ -35,6 +29,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PrimedTnt.class)
 public abstract class MixinPrimedTNT extends Entity {
+
+  private static final TicketType<Unit> TNT_CHUNKLOAD = TicketType.create("tte_tnt", (unit1, unit2) -> {return 0;}, 400);
 
   public MixinPrimedTNT(EntityType<?> entityType, Level level) {
     super(entityType, level);
@@ -107,20 +103,18 @@ public abstract class MixinPrimedTNT extends Entity {
 
         /*Seems to load the chunk, but entities in there arent processed...*/
         level.getChunkSource().addRegionTicket(
-          TicketType.PLUGIN,
+          TNT_CHUNKLOAD,
           chunkPos,
           1,
           Unit.INSTANCE
         );
+        //System.out.println("Force loading chunk: " + chunkCoords.a() + " " + chunkCoords.b());
       }
       if (!this.level().shouldTickBlocksAt(chunkPos.toLong())) {
-        ((ServerChunkCache) this.level().getChunkSource()).addTicketAtLevel(TicketType.POST_TELEPORT, chunkPos, 2, this.getId());
+        //System.out.println("Adding TICKING ticket for chunk: " + chunkCoords.a() + " " + chunkCoords.b());
+        ((ServerChunkCache) this.level().getChunkSource()).addTicketAtLevel(TNT_CHUNKLOAD, chunkPos, 2, Unit.INSTANCE);
       }
-
-
-      //System.out.println("Force loading chunk: " + chunkCoords.a() + " " + chunkCoords.b());
     }
-
   }
 
 }
