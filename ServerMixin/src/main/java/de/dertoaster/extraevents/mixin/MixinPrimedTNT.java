@@ -65,7 +65,7 @@ public abstract class MixinPrimedTNT extends Entity {
       hitBlock = CraftBlock.at(this.level(), blockHitResult.getBlockPos());
       hitFace = CraftBlock.notchToBlockFace(blockHitResult.getDirection());
     }
-    if (hitResult instanceof EntityHitResult entityHitResult){
+    if (hitResult instanceof EntityHitResult entityHitResult) {
       hitEntity = entityHitResult.getEntity().getBukkitEntity();
     }
     TNTHitEvent event = new TNTHitEvent((TNTPrimed) this.getBukkitEntity(), hitEntity, hitBlock, hitFace);
@@ -101,35 +101,24 @@ public abstract class MixinPrimedTNT extends Entity {
     // Iterate along the path and load chunks in => chunk in front and to the left and right of the chunk
     // Run Bresenham-Line algorithm to find all chunks we cross
     for (BresenhamUtil.IntTuple chunkCoords : BresenhamUtil.bresenham2d(new BresenhamUtil.IntTuple(chunkPosCur), new BresenhamUtil.IntTuple(chunkPosNext))) {
+      ChunkPos chunkPos = new ChunkPos(chunkCoords.a(), chunkCoords.b());
       if (this.level().getChunkIfLoaded(chunkCoords.a(), chunkCoords.b()) == null) {
-        ChunkPos chunkPos = new ChunkPos(chunkCoords.a(), chunkCoords.b());
-
         ServerLevel level = this.level().getMinecraftWorld();
 
         /*Seems to load the chunk, but entities in there arent processed...*/
-//        level.getChunkSource().addRegionTicket(
-//          TicketType.PLUGIN,
-//          chunkPos,
-//          1,
-//          Unit.INSTANCE
-//        );
-
-        this.getBukkitEntity().getWorld().loadChunk(chunkCoords.a(), chunkCoords.b());
-
-        /* Logic the World uses to handle forced chunks */
-        LevelChunk levelChunk = level.getChunk(chunkPos.x, chunkPos.z);
-        level.getChunkSource().updateChunkForced(chunkPos, true);
-
-        // Attempt to make the chunk tick entities
-        PlatformHooks.get().onChunkEntityTicking(levelChunk, new ChunkHolder(
-          chunkPos, ChunkHolderManager.MAX_TICKET_LEVEL, this.level(),
-          this.level().getLightEngine(), null, ((ServerChunkCache)this.level().getChunkSource()).chunkMap
-        ));
-
-        // TODO: Mark chunk as ticking or tick it manually...
-
-        //System.out.println("Force loading chunk: " + chunkCoords.a() + " " + chunkCoords.b());
+        level.getChunkSource().addRegionTicket(
+          TicketType.PLUGIN,
+          chunkPos,
+          1,
+          Unit.INSTANCE
+        );
       }
+      if (!this.level().shouldTickBlocksAt(chunkPos.toLong())) {
+        ((ServerChunkCache) this.level().getChunkSource()).addTicketAtLevel(TicketType.POST_TELEPORT, chunkPos, 2, this.getId());
+      }
+
+
+      //System.out.println("Force loading chunk: " + chunkCoords.a() + " " + chunkCoords.b());
     }
 
   }
