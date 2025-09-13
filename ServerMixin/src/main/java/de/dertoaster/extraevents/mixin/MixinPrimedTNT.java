@@ -21,8 +21,13 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.craftbukkit.block.CraftBlock;
+import org.bukkit.craftbukkit.event.CraftEventFactory;
+import org.bukkit.entity.Explosive;
 import org.bukkit.entity.TNTPrimed;
+import org.bukkit.event.entity.EntityRemoveEvent;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -33,6 +38,9 @@ public abstract class MixinPrimedTNT extends Entity {
 
   @Shadow
   public abstract int getFuse();
+
+  // TODO: Implement for new explosion algorithm
+  private Object damageCache = null;
 
   private static final TicketType<Unit> TNT_CHUNKLOAD = TicketType.create("tte_tnt", (unit1, unit2) -> {return 0;}, 400);
 
@@ -108,6 +116,47 @@ public abstract class MixinPrimedTNT extends Entity {
         ((ServerChunkCache) this.level().getChunkSource()).addTicketAtLevel(TNT_CHUNKLOAD, chunkPos, ChunkLevel.ENTITY_TICKING_LEVEL, Unit.INSTANCE);
       }
     }
+  }
+
+  @Inject(
+    method = "tick()V",
+    at = @At(
+      value = "INVOKE",
+      target = "Lnet/minecraft/world/entity/item/PrimedTnt;explode()V",
+      shift = At.Shift.BEFORE
+    ),
+    cancellable = true
+  )
+  private void mixinBeforeExplode(CallbackInfo callbackInfo) {
+    float explosionPower = ((PrimedTnt)(Object)this).explosionPower;
+    if (this.getFuse() < 0 && this.damageCache == null) {
+      this.discard(EntityRemoveEvent.Cause.DISCARD);
+      callbackInfo.cancel();
+      return;
+    }
+    // Only if the value is greater than that we will use our new algorithm!
+    if (explosionPower < 16) {
+      return;
+    }
+    ExplosionPrimeEvent event = CraftEventFactory.callExplosionPrimeEvent((Explosive)this.getBukkitEntity());
+    if (event.isCancelled()) {
+      this.discard(EntityRemoveEvent.Cause.EXPLODE);
+      return;
+    }
+
+    explosionPower = event.getRadius();
+  }
+
+  /**
+   * @author DerToaster98
+   * @reason New Explosion algorithm can create negative fuse tnt
+   */
+  @Overwrite
+  public boolean isPushedByFluid() {
+    if (this.getFuse() <= 0) {
+      return false;
+    }
+    return !this.level().paperConfig().fixes.preventTntFromMovingInWater && super.isPushedByFluid();
   }
 
 }
