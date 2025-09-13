@@ -145,6 +145,18 @@ public abstract class MixinPrimedTNT extends Entity {
     }
 
     explosionPower = event.getRadius();
+
+//    1) Calculate block blob => the possibly affected blocks=> take from CQR, but use a 3d boolean array
+//    2) Calculate layers (lists) using that blob and put them in a queue and make sure there is no gap
+//    3) Repeat for each layer and for each entry in the layer
+//      3.1) If the blast resistance is equal or above the limit (blast power remaining = maxRadius - layer-index), break the block
+//        3.1.5) To find the relevant corners of the cube, take the center/corner vector, set it's length to a fourth of the blocks side length and then add it and remove it to the corners
+//               If the resulting location is inside the cube, it is not a corner we need
+//      3.2) Otherwise, calculate the block cone of that block (vectors = center-to-block-center; center-to-other-corners of the block !!depends on orientation!!) and build a pyramid (pyramid "height" = maxRadius)
+//           Calculate all normals for the 5 planes of the pyramid
+//      3.3) For this layer and all following layers, remove all positions that are in that blast cone
+//      3.4) If a layer has no more positions, remove it
+//      3.5) Repeat until no more layer is left
   }
 
   /**
