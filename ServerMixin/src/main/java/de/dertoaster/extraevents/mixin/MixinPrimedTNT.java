@@ -5,8 +5,8 @@ import de.dertoaster.extraevents.api.BresenhamUtil;
 import de.dertoaster.extraevents.api.event.TNTHitEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.server.level.ChunkLevel;
 import net.minecraft.server.level.ServerChunkCache;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.Entity;
@@ -23,12 +23,16 @@ import net.minecraft.world.phys.Vec3;
 import org.bukkit.craftbukkit.block.CraftBlock;
 import org.bukkit.entity.TNTPrimed;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PrimedTnt.class)
 public abstract class MixinPrimedTNT extends Entity {
+
+  @Shadow
+  public abstract int getFuse();
 
   private static final TicketType<Unit> TNT_CHUNKLOAD = TicketType.create("tte_tnt", (unit1, unit2) -> {return 0;}, 400);
 
@@ -87,7 +91,7 @@ public abstract class MixinPrimedTNT extends Entity {
     BlockPos posNext = posCur.offset(velocity);
     ChunkPos chunkPosCur = new ChunkPos(posCur);
     // Offset the next position by 2x the distance travelled to smoothen the process
-    ChunkPos chunkPosNext = new ChunkPos(posNext.offset(posNext.subtract(posCur)));
+    ChunkPos chunkPosNext = new ChunkPos(posNext);
 
     if (chunkPosCur.equals(chunkPosNext)) {
       return;
@@ -98,21 +102,10 @@ public abstract class MixinPrimedTNT extends Entity {
     // Run Bresenham-Line algorithm to find all chunks we cross
     for (BresenhamUtil.IntTuple chunkCoords : BresenhamUtil.bresenham2d(new BresenhamUtil.IntTuple(chunkPosCur), new BresenhamUtil.IntTuple(chunkPosNext))) {
       ChunkPos chunkPos = new ChunkPos(chunkCoords.a(), chunkCoords.b());
-      if (this.level().getChunkIfLoaded(chunkCoords.a(), chunkCoords.b()) == null) {
-        ServerLevel level = this.level().getMinecraftWorld();
-
-        /*Seems to load the chunk, but entities in there arent processed...*/
-        level.getChunkSource().addRegionTicket(
-          TNT_CHUNKLOAD,
-          chunkPos,
-          1,
-          Unit.INSTANCE
-        );
-        //System.out.println("Force loading chunk: " + chunkCoords.a() + " " + chunkCoords.b());
-      }
-      if (!this.level().shouldTickBlocksAt(chunkPos.toLong())) {
+      if (this.level().getChunkIfLoaded(chunkCoords.a(), chunkCoords.b()) == null || !this.level().shouldTickBlocksAt(chunkPos.toLong())) {
         //System.out.println("Adding TICKING ticket for chunk: " + chunkCoords.a() + " " + chunkCoords.b());
-        ((ServerChunkCache) this.level().getChunkSource()).addTicketAtLevel(TNT_CHUNKLOAD, chunkPos, 2, Unit.INSTANCE);
+        // Force load chunk and mark it for ticking!
+        ((ServerChunkCache) this.level().getChunkSource()).addTicketAtLevel(TNT_CHUNKLOAD, chunkPos, ChunkLevel.ENTITY_TICKING_LEVEL, Unit.INSTANCE);
       }
     }
   }
