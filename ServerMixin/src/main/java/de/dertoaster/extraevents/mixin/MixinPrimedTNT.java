@@ -1,12 +1,13 @@
 package de.dertoaster.extraevents.mixin;
 
+import ca.spottedleaf.moonrise.common.util.CoordinateUtils;
 import de.dertoaster.extraevents.ProjectileHelper;
 import de.dertoaster.extraevents.api.BresenhamUtil;
 import de.dertoaster.extraevents.api.event.TNTHitEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ChunkLevel;
-import net.minecraft.server.level.ServerChunkCache;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.Entity;
@@ -110,10 +111,19 @@ public abstract class MixinPrimedTNT extends Entity {
     // Run Bresenham-Line algorithm to find all chunks we cross
     for (BresenhamUtil.IntTuple chunkCoords : BresenhamUtil.bresenham2d(new BresenhamUtil.IntTuple(chunkPosCur), new BresenhamUtil.IntTuple(chunkPosNext))) {
       ChunkPos chunkPos = new ChunkPos(chunkCoords.a(), chunkCoords.b());
-      if (this.level().getChunkIfLoaded(chunkCoords.a(), chunkCoords.b()) == null || !this.level().shouldTickBlocksAt(chunkPos.toLong())) {
+
+      final boolean loadedChunk = this.level().getChunkIfLoaded(chunkCoords.a(), chunkCoords.b()) != null;
+
+      final ServerLevel level = (ServerLevel) this.level();
+
+      final boolean tickingEntity = level.moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(CoordinateUtils.getChunkKey(chunkPos)).isEntityTickingReady();
         //System.out.println("Adding TICKING ticket for chunk: " + chunkCoords.a() + " " + chunkCoords.b());
         // Force load chunk and mark it for ticking!
-        ((ServerChunkCache) this.level().getChunkSource()).addTicketAtLevel(TNT_CHUNKLOAD, chunkPos, ChunkLevel.ENTITY_TICKING_LEVEL, Unit.INSTANCE);
+      if (!loadedChunk) {
+        level.getChunkSource().addTicketAtLevel(TNT_CHUNKLOAD, chunkPos, ChunkLevel.BLOCK_TICKING_LEVEL, Unit.INSTANCE);
+      }
+      if (!loadedChunk || !tickingEntity) {
+        level.getChunkSource().addTicketAtLevel(TNT_CHUNKLOAD, chunkPos, ChunkLevel.ENTITY_TICKING_LEVEL, Unit.INSTANCE);
       }
     }
   }
@@ -130,8 +140,6 @@ public abstract class MixinPrimedTNT extends Entity {
   private void mixinBeforeExplode(CallbackInfo callbackInfo) {
     float explosionPower = ((PrimedTnt)(Object)this).explosionPower;
     if (this.getFuse() < 0 && this.damageCache == null) {
-      this.discard(EntityRemoveEvent.Cause.DISCARD);
-      callbackInfo.cancel();
       return;
     }
     // Only if the value is greater than that we will use our new algorithm!
@@ -140,7 +148,6 @@ public abstract class MixinPrimedTNT extends Entity {
     }
     ExplosionPrimeEvent event = CraftEventFactory.callExplosionPrimeEvent((Explosive)this.getBukkitEntity());
     if (event.isCancelled()) {
-      this.discard(EntityRemoveEvent.Cause.EXPLODE);
       return;
     }
 
@@ -157,6 +164,7 @@ public abstract class MixinPrimedTNT extends Entity {
 //      3.3) For this layer and all following layers, remove all positions that are in that blast cone
 //      3.4) If a layer has no more positions, remove it
 //      3.5) Repeat until no more layer is left
+    // If we ran our custom explosion algorithm, cancel the CallbackInfo!
   }
 
   /**
