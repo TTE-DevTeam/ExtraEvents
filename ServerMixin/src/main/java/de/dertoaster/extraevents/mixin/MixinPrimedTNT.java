@@ -1,6 +1,7 @@
 package de.dertoaster.extraevents.mixin;
 
 import ca.spottedleaf.moonrise.common.util.CoordinateUtils;
+import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder;
 import de.dertoaster.extraevents.ProjectileHelper;
 import de.dertoaster.extraevents.api.BresenhamUtil;
 import de.dertoaster.extraevents.api.event.TNTHitEvent;
@@ -25,8 +26,8 @@ import org.bukkit.craftbukkit.block.CraftBlock;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
 import org.bukkit.entity.Explosive;
 import org.bukkit.entity.TNTPrimed;
-import org.bukkit.event.entity.EntityRemoveEvent;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -115,8 +116,9 @@ public abstract class MixinPrimedTNT extends Entity {
       final boolean loadedChunk = this.level().getChunkIfLoaded(chunkCoords.a(), chunkCoords.b()) != null;
 
       final ServerLevel level = (ServerLevel) this.level();
+      final @Nullable NewChunkHolder chunkHolder = level.moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(CoordinateUtils.getChunkKey(chunkPos));
 
-      final boolean tickingEntity = level.moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(CoordinateUtils.getChunkKey(chunkPos)).isEntityTickingReady();
+      final boolean tickingEntity = chunkHolder != null && chunkHolder.isEntityTickingReady();
         //System.out.println("Adding TICKING ticket for chunk: " + chunkCoords.a() + " " + chunkCoords.b());
         // Force load chunk and mark it for ticking!
       if (!loadedChunk) {
