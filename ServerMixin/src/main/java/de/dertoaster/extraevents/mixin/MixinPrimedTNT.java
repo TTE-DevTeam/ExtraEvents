@@ -1,33 +1,25 @@
 package de.dertoaster.extraevents.mixin;
 
-import ca.spottedleaf.moonrise.common.util.CoordinateUtils;
-import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder;
 import de.dertoaster.extraevents.ProjectileHelper;
-import de.dertoaster.extraevents.api.BresenhamUtil;
+import de.dertoaster.extraevents.api.entity.IChunkLoadingEntity;
 import de.dertoaster.extraevents.api.event.TNTHitEvent;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
-import net.minecraft.server.level.ChunkLevel;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.TicketType;
-import net.minecraft.util.Unit;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
 import org.bukkit.craftbukkit.block.CraftBlock;
 import org.bukkit.craftbukkit.event.CraftEventFactory;
 import org.bukkit.entity.Explosive;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -36,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PrimedTnt.class)
-public abstract class MixinPrimedTNT extends Entity {
+public abstract class MixinPrimedTNT extends Entity implements IChunkLoadingEntity {
 
   @Shadow
   public abstract int getFuse();
@@ -44,7 +36,7 @@ public abstract class MixinPrimedTNT extends Entity {
   // TODO: Implement for new explosion algorithm
   private Object damageCache = null;
 
-  private static final TicketType<Unit> TNT_CHUNKLOAD = TicketType.create("tte_tnt", (unit1, unit2) -> {return 0;}, 400);
+  protected boolean canLoadChunks = true;
 
   public MixinPrimedTNT(EntityType<?> entityType, Level level) {
     super(entityType, level);
@@ -95,39 +87,9 @@ public abstract class MixinPrimedTNT extends Entity {
     )
   )
   private void mixinTickChunkLoading(CallbackInfo callbackInfo) {
-    Vec3 velocityRaw = this.getDeltaMovement();
-    Vec3i velocity = new Vec3i((int) velocityRaw.x(), (int) velocityRaw.y(), (int) velocityRaw.z());
-    BlockPos posCur = new BlockPos(this.getBlockX(), this.getBlockY(), this.getBlockZ());
-    BlockPos posNext = posCur.offset(velocity);
-    ChunkPos chunkPosCur = new ChunkPos(posCur);
-    // Offset the next position by 2x the distance travelled to smoothen the process
-    ChunkPos chunkPosNext = new ChunkPos(posNext);
-
-    if (chunkPosCur.equals(chunkPosNext)) {
-      return;
-    }
-
-    // Not the same chunk => Chunkload!
-    // Iterate along the path and load chunks in => chunk in front and to the left and right of the chunk
-    // Run Bresenham-Line algorithm to find all chunks we cross
-    for (BresenhamUtil.IntTuple chunkCoords : BresenhamUtil.bresenham2d(new BresenhamUtil.IntTuple(chunkPosCur), new BresenhamUtil.IntTuple(chunkPosNext))) {
-      ChunkPos chunkPos = new ChunkPos(chunkCoords.a(), chunkCoords.b());
-
-      final boolean loadedChunk = this.level().getChunkIfLoaded(chunkCoords.a(), chunkCoords.b()) != null;
-
-      final ServerLevel level = (ServerLevel) this.level();
-      final @Nullable NewChunkHolder chunkHolder = level.moonrise$getChunkTaskScheduler().chunkHolderManager.getChunkHolder(CoordinateUtils.getChunkKey(chunkPos));
-
-      final boolean tickingEntity = chunkHolder != null && chunkHolder.isEntityTickingReady();
-        //System.out.println("Adding TICKING ticket for chunk: " + chunkCoords.a() + " " + chunkCoords.b());
-        // Force load chunk and mark it for ticking!
-      if (!loadedChunk) {
-        level.getChunkSource().addTicketAtLevel(TNT_CHUNKLOAD, chunkPos, ChunkLevel.BLOCK_TICKING_LEVEL, Unit.INSTANCE);
-      }
-      if (!loadedChunk || !tickingEntity) {
-        level.getChunkSource().addTicketAtLevel(TNT_CHUNKLOAD, chunkPos, ChunkLevel.ENTITY_TICKING_LEVEL, Unit.INSTANCE);
-      }
-    }
+    final BlockPos posCur = new BlockPos(this.getBlockX(), this.getBlockY(), this.getBlockZ());
+    ServerLevel serverLevel = (ServerLevel) this.level();
+    this.loadChunks(this.getDeltaMovement(), posCur, serverLevel);
   }
 
   @Inject(
@@ -179,6 +141,36 @@ public abstract class MixinPrimedTNT extends Entity {
       return false;
     }
     return !this.level().paperConfig().fixes.preventTntFromMovingInWater && super.isPushedByFluid();
+  }
+
+  @Override
+  public boolean canLoadChunks() {
+    return this.canLoadChunks;
+  }
+
+  @Override
+  public void setCanLoadChunks(boolean value) {
+    this.canLoadChunks = value;
+  }
+
+  @Inject(
+    method = "addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V",
+    at = @At(
+      value = "TAIL"
+    )
+  )
+  private void mixinAddAdditionalSaveData(CompoundTag compound, CallbackInfo ci) {
+    this.callOnAddAdditionalSaveData(compound);
+  }
+
+  @Inject(
+    method = "readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V",
+    at = @At(
+      value = "TAIL"
+    )
+  )
+  private void mixinReadAdditionalSaveData(CompoundTag compound, CallbackInfo ci) {
+    this.callOnReadAdditionalSaveData(compound);
   }
 
 }
