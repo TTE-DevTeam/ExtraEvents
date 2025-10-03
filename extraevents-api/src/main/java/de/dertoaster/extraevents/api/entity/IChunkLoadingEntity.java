@@ -14,27 +14,36 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 public interface IChunkLoadingEntity {
 
     public boolean canLoadChunks();
 
     public void setCanLoadChunks(boolean value);
 
-    static final TicketType<Unit> ENTITY_CHUNKLOAD = TicketType.create("tte_entity_chunkload", (unit1, unit2) -> {return 0;}, 400);
+    static final TicketType<Unit> ENTITY_CHUNKLOAD = TicketType.register("tte_entity_chunkload", 400, false, TicketType.TicketUse.LOADING_AND_SIMULATION);
 
     public default void callOnReadAdditionalSaveData(final CompoundTag compound) {
-        if (!compound.contains("tte", CompoundTag.TAG_COMPOUND) || compound.getCompound("tte") == null) {
+        if (!compound.contains("tte") || compound.getCompound("tte") == null) {
             return;
         }
-        CompoundTag tteTag = compound.getCompound("tte");
-        if (tteTag.contains("chunkLoading")) {
-            this.setCanLoadChunks(tteTag.getBoolean("chunkLoading"));
+        Optional<CompoundTag> tteTag = compound.getCompound("tte");
+        if (tteTag.isPresent() && tteTag.get().contains("chunkLoading")) {
+            Optional<Boolean> optBool = tteTag.get().getBoolean("chunkLoading");
+            if (optBool.isPresent() && optBool.get()) {
+                this.setCanLoadChunks(true);
+            } else {
+                this.setCanLoadChunks(false);
+            }
         }
     }
 
     public default void callOnAddAdditionalSaveData(final CompoundTag compound) {
-        CompoundTag tteTag = compound.getCompound("tte");
-        tteTag.putBoolean("chunkLoading", this.canLoadChunks());
+        Optional<CompoundTag> tteTag = compound.getCompound("tte");
+        tteTag.ifPresent(tag -> {
+            tag.putBoolean("chunkLoading", this.canLoadChunks());
+        });
     }
 
     public default void loadChunks(final Vec3 movementDelta, final BlockPos posCur, final ServerLevel level) {
@@ -67,10 +76,10 @@ public interface IChunkLoadingEntity {
             //System.out.println("Adding TICKING ticket for chunk: " + chunkCoords.a() + " " + chunkCoords.b());
             // Force load chunk and mark it for ticking!
             if (!loadedChunk) {
-                level.getChunkSource().addTicketAtLevel(ENTITY_CHUNKLOAD, chunkPos, ChunkLevel.BLOCK_TICKING_LEVEL, Unit.INSTANCE);
+                level.getChunkSource().addTicketAtLevel(ENTITY_CHUNKLOAD, chunkPos, ChunkLevel.BLOCK_TICKING_LEVEL);
             }
             if (!loadedChunk || !tickingEntity) {
-                level.getChunkSource().addTicketAtLevel(ENTITY_CHUNKLOAD, chunkPos, ChunkLevel.ENTITY_TICKING_LEVEL, Unit.INSTANCE);
+                level.getChunkSource().addTicketAtLevel(ENTITY_CHUNKLOAD, chunkPos, ChunkLevel.ENTITY_TICKING_LEVEL);
             }
         }
     }
