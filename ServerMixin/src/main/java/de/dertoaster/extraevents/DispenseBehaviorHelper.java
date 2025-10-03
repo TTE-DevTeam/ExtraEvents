@@ -22,6 +22,7 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DispenserBlock;
+import net.minecraft.world.level.block.entity.DispenserBlockEntity;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.block.CraftBlock;
@@ -44,9 +45,9 @@ public class DispenseBehaviorHelper {
         Block block = CraftBlock.at(serverLevel, blockSource.pos());
         CraftItemStack craftItem = CraftItemStack.asCraftMirror(singleItemStack);
         BlockDispenseEvent event = new BlockDispenseEvent(block, craftItem.clone(), new Vector(0, 0, 0));
-        if (!DispenserBlock.eventFired) {
+        //if (!DispenserBlock.eventFired) {
           serverLevel.getCraftServer().getPluginManager().callEvent(event);
-        }
+        //}
 
         if (event.isCancelled()) {
           return item;
@@ -68,9 +69,9 @@ public class DispenseBehaviorHelper {
           try {
             Entity entity = type.spawn(blockSource.level(), singleItemStack, (Player)null, blockSource.pos().relative(direction), EntitySpawnReason.DISPENSER, direction != Direction.UP, false);
             DispenserDispenseEntityEvent ddee = new DispenserDispenseEntityEvent(block, entity.getBukkitEntity());
-            if (!DispenserBlock.eventFired) {
+            //if (!DispenserBlock.eventFired) {
               ddee.callEvent();
-            }
+            //}
           } catch (Exception var13) {
             Exception var6 = var13;
             LOGGER.error("Error while dispensing spawn egg from dispenser at {}", blockSource.pos(), var6);
@@ -103,9 +104,9 @@ public class DispenseBehaviorHelper {
         Block block = CraftBlock.at(serverLevel, blockSource.pos());
         CraftItemStack craftItem = CraftItemStack.asCraftMirror(singleItemStack);
         BlockDispenseEvent event = new BlockDispenseEvent(block, craftItem.clone(), new Vector(0, 0, 0));
-        if (!DispenserBlock.eventFired) {
+        //if (!DispenserBlock.eventFired) {
           serverLevel.getCraftServer().getPluginManager().callEvent(event);
-        }
+        //}
 
         if (event.isCancelled()) {
           return item;
@@ -131,9 +132,9 @@ public class DispenseBehaviorHelper {
             item.shrink(1);
           }
           DispenserDispenseEntityEvent ddee = new DispenserDispenseEntityEvent(block, armorStand.getBukkitEntity());
-          if (!DispenserBlock.eventFired) {
+          //if (!DispenserBlock.eventFired) {
             ddee.callEvent();
-          }
+          //}
 
           return item;
         }
@@ -152,9 +153,9 @@ public class DispenseBehaviorHelper {
         Block block = CraftBlock.at(level, blockSource.pos());
         CraftItemStack craftItem = CraftItemStack.asCraftMirror(singleItemStack);
         BlockDispenseEvent event = new BlockDispenseEvent(block, craftItem.clone(), new Vector((double)blockPos.getX() + 0.5, (double)blockPos.getY(), (double)blockPos.getZ() + 0.5));
-        if (!DispenserBlock.eventFired) {
+        //if (!DispenserBlock.eventFired) {
           level.getCraftServer().getPluginManager().callEvent(event);
-        }
+        //}
 
         if (event.isCancelled()) {
           return item;
@@ -178,9 +179,9 @@ public class DispenseBehaviorHelper {
             item.shrink(1);
           }
           DispenserDispenseEntityEvent ddee = new DispenserDispenseEntityEvent(block, primedTnt.getBukkitEntity());
-          if (!DispenserBlock.eventFired) {
+          //if (!DispenserBlock.eventFired) {
             ddee.callEvent();
-          }
+          //}
 
           return item;
         }
