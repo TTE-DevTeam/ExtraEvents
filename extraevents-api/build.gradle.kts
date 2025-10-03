@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "de.dertoaster"
-version = "1.6.0"
+version = "1.7.3"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
