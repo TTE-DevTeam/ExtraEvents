@@ -8,11 +8,11 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ChunkLevel;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.TicketType;
-import net.minecraft.util.Unit;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+
+import static de.dertoaster.extraevents.api.chunk.TTETicketTypes.*;
 
 import java.util.Optional;
 
@@ -21,8 +21,6 @@ public interface IChunkLoadingEntity {
     public boolean canLoadChunks();
 
     public void setCanLoadChunks(boolean value);
-
-    static final TicketType<Unit> ENTITY_CHUNKLOAD = TicketType.register("tte_entity_chunkload", 400, false, TicketType.TicketUse.LOADING_AND_SIMULATION);
 
     public default void callOnReadAdditionalSaveData(final CompoundTag compound) {
         if (!compound.contains("tte") || compound.getCompound("tte") == null) {
