@@ -1,7 +1,7 @@
 plugins {
     `java-library`
     id("java")
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.13"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.17"
 }
 
 group = "de.dertoaster"
@@ -20,7 +20,7 @@ repositories {
 
 dependencies {
     api("org.jetbrains:annotations-java5:24.1.0")
-    paperweight.paperDevBundle("1.21.4-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")
 }
 
 paperweight.reobfArtifactConfiguration = io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION

@@ -1,7 +1,7 @@
 plugins {
   id("mod.base-conventions")
   id("io.github.goooler.shadow") version "8.1.7"
-  id("io.papermc.paperweight.userdev") version "2.0.0-beta.13"
+  id("io.papermc.paperweight.userdev") version "2.0.0-beta.17"
 }
 
 java {

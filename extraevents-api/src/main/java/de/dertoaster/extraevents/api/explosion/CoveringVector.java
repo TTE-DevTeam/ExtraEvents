@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+// TODO: Add a runtime data object that can store how much power it has left
 // TODO: Hide access to the covered objects and use a function to remove them from the queue instead
 public record CoveringVector(
         double x,
