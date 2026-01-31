@@ -4,7 +4,6 @@ import de.dertoaster.extraevents.ProjectileHelper;
 import de.dertoaster.extraevents.api.entity.IChunkLoadingEntity;
 import de.dertoaster.extraevents.api.event.TNTHitEvent;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -12,6 +11,8 @@ import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -154,23 +155,23 @@ public abstract class MixinPrimedTNT extends Entity implements IChunkLoadingEnti
   }
 
   @Inject(
-    method = "addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V",
+    method = "addAdditionalSaveData(Lnet/minecraft/world/level/storage/ValueOutput;)V",
     at = @At(
-      value = "TAIL"
+      value = "HEAD"
     )
   )
-  private void mixinAddAdditionalSaveData(CompoundTag compound, CallbackInfo ci) {
-    this.callOnAddAdditionalSaveData(compound);
+  private void mixinAddAdditionalSaveData(ValueOutput output, CallbackInfo ci) {
+    this.callOnAddAdditionalSaveData(output);
   }
 
   @Inject(
-    method = "readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V",
+    method = "readAdditionalSaveData(Lnet/minecraft/world/level/storage/ValueInput;)V",
     at = @At(
-      value = "TAIL"
+      value = "HEAD"
     )
   )
-  private void mixinReadAdditionalSaveData(CompoundTag compound, CallbackInfo ci) {
-    this.callOnReadAdditionalSaveData(compound);
+  private void mixinReadAdditionalSaveData(ValueInput input, CallbackInfo ci) {
+    this.callOnReadAdditionalSaveData(input);
   }
 
 }

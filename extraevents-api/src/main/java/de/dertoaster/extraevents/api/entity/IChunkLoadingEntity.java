@@ -5,10 +5,11 @@ import ca.spottedleaf.moonrise.patches.chunk_system.scheduling.NewChunkHolder;
 import de.dertoaster.extraevents.api.BresenhamUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ChunkLevel;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,26 +23,18 @@ public interface IChunkLoadingEntity {
 
     public void setCanLoadChunks(boolean value);
 
-    public default void callOnReadAdditionalSaveData(final CompoundTag compound) {
-        if (!compound.contains("tte") || compound.getCompound("tte") == null) {
-            return;
-        }
-        Optional<CompoundTag> tteTag = compound.getCompound("tte");
-        if (tteTag.isPresent() && tteTag.get().contains("chunkLoading")) {
-            Optional<Boolean> optBool = tteTag.get().getBoolean("chunkLoading");
-            if (optBool.isPresent() && optBool.get()) {
-                this.setCanLoadChunks(true);
-            } else {
-                this.setCanLoadChunks(false);
-            }
+    public default void callOnReadAdditionalSaveData(final ValueInput compound) {
+        Optional<ValueInput> tteData = compound.child("tte");
+        if (tteData.isPresent() && tteData.get().getBooleanOr("chunkLoading", false)) {
+            this.setCanLoadChunks(true);
         }
     }
 
-    public default void callOnAddAdditionalSaveData(final CompoundTag compound) {
-        Optional<CompoundTag> tteTag = compound.getCompound("tte");
-        tteTag.ifPresent(tag -> {
-            tag.putBoolean("chunkLoading", this.canLoadChunks());
-        });
+    public default void callOnAddAdditionalSaveData(final ValueOutput compound) {
+        ValueOutput tteData = compound.child("tte");
+        if (tteData != null) {
+            tteData.putBoolean("chunkLoading", this.canLoadChunks());
+        }
     }
 
     public default void loadChunks(final Vec3 movementDelta, final BlockPos posCur, final ServerLevel level) {
