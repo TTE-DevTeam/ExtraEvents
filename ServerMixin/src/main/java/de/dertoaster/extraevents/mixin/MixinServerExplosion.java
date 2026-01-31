@@ -39,6 +39,9 @@ public abstract class MixinServerExplosion {
       return;
     }
     Entity exploder = ((ServerExplosion)(Object)this).getDirectSourceEntity();
+    if (exploder == null) {
+      return;
+    }
     if (exploder.isRemoved()) {
       exploder = null;
     }
