@@ -14,6 +14,10 @@ public class Byte3DBitmap {
 
     private final byte[] data;
 
+    public Byte3DBitmap(int radius) {
+        this(-radius, -radius, -radius, radius, radius, radius);
+    }
+
     public Byte3DBitmap(int x1, int y1, int z1, int x2, int y2, int z2) {
         int minX = Math.min(x1, x2);
         int minY = Math.min(y1, y2);
