@@ -24,6 +24,7 @@
  */
 package de.dertoaster.extraevents.mixin.plugins;
 
+import de.dertoaster.extraevents.api.explosion.Onion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.ClassNode;
@@ -36,6 +37,11 @@ import java.util.Set;
 public final class MixinPlugin implements IMixinConfigPlugin {
   @Override
   public void onLoad(final @NotNull String mixinPackage) {
+    System.out.println("Starting precomputation of Onion...");
+    final long timeStart = System.nanoTime();
+    Onion.init();
+    final long delta = System.nanoTime() - timeStart;
+    System.out.println("Finished precomputation of Onion! Took " + delta + "nanoseconds!");
   }
 
   @Override
