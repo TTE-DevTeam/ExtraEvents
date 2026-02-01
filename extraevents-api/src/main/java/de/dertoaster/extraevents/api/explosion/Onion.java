@@ -6,25 +6,26 @@ import java.util.Queue;
 
 public class Onion {
 
-    // TODO: Runtime object will be a bitmaphitbox resembling the yet to visit objects
+    // TODO: Runtime object will be a single bitmaphitbox resembling the yet to visit objects
     // TODO: Runtime stores 2 ints: currentIndex and node count
     // TODO: Runtime uses a "next()" method that returns a coveringVector
+    // TODO: Runtime: First, grab the next pos, if that pos is empty in our bitmap, set the covered positions as empty too
 
-    // 1) Create a Map<Int, Int, Int, Vector> that holds ALL the vectors
-    // 2) While creating, sort the Vectors into lists, these resemble the individual layers
-    //    Distance: ROUND DOWN
-    // 3) Go over each vector in each layer and add the vectors in the next layer to it's "covered" list that it covers
-    // 4) Provide method to generate a queue that is sorted by distance for a given radius
-
-    protected static final int PRECOMPUTE_RADIUS = 64;
+    protected static final int PRECOMPUTE_RADIUS = 32;
     protected static OnionLayer[] LAYERS = new OnionLayer[PRECOMPUTE_RADIUS + 1];
+
+    public static void init() {
+        // Do nothing
+    }
 
     static {
         // Create layers
+        System.out.println("Creating <" + PRECOMPUTE_RADIUS + "> layer instances...");
         for (int i = 0; i <= PRECOMPUTE_RADIUS; i++) {
-            LAYERS[i] = new OnionLayer();
+            LAYERS[i] = new OnionLayer(i);
         }
 
+        System.out.println("Creating position node objects...");
         // Create vectors
         for (byte iX = -PRECOMPUTE_RADIUS; iX <= PRECOMPUTE_RADIUS; iX++) {
             for (byte iY = -PRECOMPUTE_RADIUS; iY <= PRECOMPUTE_RADIUS; iY++) {
@@ -44,25 +45,34 @@ public class Onion {
                 }
             }
         }
-
+        System.out.println("Computing occlusion...");
         // Now, iterate over each layer except the last one and compute the covered positions...
         for (int i = 0; i < LAYERS.length - 1; i++) {
-            final int layerIndex = i;
-            LAYERS[i].forEach(cv -> computeCoveredPositions(cv, layerIndex));
+            OnionLayer next = LAYERS[i+1];
+            LAYERS[i].forEach(cv -> computeCoveredPositions(cv, next));
         }
+        System.out.println("Done!");
     }
 
-    protected static void computeCoveredPositions(CoveringVector position, int layerIndex) {
-        for (int i = layerIndex + 1; i < LAYERS.length; i++) {
-            OnionLayer layer = LAYERS[i];
-            for (CoveringVector toTest : layer) {
-                if (position.occludes(toTest)) {
-                    if (position.coveredPositions().inBounds(toTest)) {
-                        position.coveredPositions().set(toTest);
-                    }
+    protected static void computeCoveredPositions(CoveringVector position, OnionLayer nextLayer) {
+        for (CoveringVector toTest : nextLayer) {
+            // Danger: This will maybe cut off data!
+            byte deltaX = (byte) (toTest.x() - position.x());
+            byte deltaY = (byte) (toTest.y() - position.y());
+            byte deltaZ = (byte) (toTest.z() - position.z());
+            if (position.occludes(deltaX, deltaY, deltaZ)) {
+                if (position.coveredPositions().inBounds(deltaX, deltaY, deltaZ)) {
+                    position.coveredPositions().set(deltaX, deltaY, deltaZ);
                 }
             }
         }
+    }
+
+    public static Optional<OnionLayer> getLayer(int index) {
+        if (index < 0 || index >= LAYERS.length) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(LAYERS[index]);
     }
 
     // TODO: Optimize!
