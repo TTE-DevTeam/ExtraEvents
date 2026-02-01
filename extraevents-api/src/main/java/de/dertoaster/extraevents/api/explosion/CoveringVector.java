@@ -21,8 +21,9 @@ public record CoveringVector(
     };
 
     public CoveringVector(byte x, byte y, byte z) {
-        // TODO: Change the bitmap so that it starts at the position and goes to the next-furthest edge
-        this(x, y, z, new Byte3DBitmap(-128, -128, -128, 128, 128, 128));
+        // TODO: Calculate the proper box that this vector can occlude!
+        // TODO: Implement the above, we need more than 32GB of memory when computing 64m radius!
+        this(x, y, z, new Byte3DBitmap((int) (1 + (Math.round(Math.sqrt((x * x) + (y * y) + (z * z)))))));
     }
 
     @Override
@@ -43,6 +44,10 @@ public record CoveringVector(
     // Test if THIS cube occludes the cube of OTHER
     public boolean occludes(CoveringVector other) {
         return occludes(other.x(), other.y(), other.z(), this.x(), this.y(), this.z());
+    }
+
+    public boolean occludes(byte x, byte y, byte z) {
+        return occludes(x, y, z, this.x(), this.y(), this.z());
     }
 
     // Attention: Assumes that 0/0/0 is the VIEWER!
