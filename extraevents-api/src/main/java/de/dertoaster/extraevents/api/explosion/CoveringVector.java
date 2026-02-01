@@ -6,6 +6,7 @@ public record CoveringVector(
         byte x,
         byte y,
         byte z,
+        // TODO Replace with normal reference list and test memory requirements!
         Byte3DBitmap coveredPositions
 ) {
 
