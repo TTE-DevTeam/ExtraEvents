@@ -3,6 +3,7 @@ package de.dertoaster.extraevents.api.explosion;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Onion {
 
@@ -26,13 +27,14 @@ public class Onion {
         }
 
         System.out.println("Creating position node objects...");
+        long createdNodes =0;
         // Create vectors
         for (byte iX = -PRECOMPUTE_RADIUS; iX <= PRECOMPUTE_RADIUS; iX++) {
             for (byte iY = -PRECOMPUTE_RADIUS; iY <= PRECOMPUTE_RADIUS; iY++) {
                 for (byte iZ = -PRECOMPUTE_RADIUS; iZ <= PRECOMPUTE_RADIUS; iZ++) {
                     // Enforce ball shape!
                     final double dist = Math.sqrt(iX * iX + iY * iY + iZ * iZ);
-                    if (dist > PRECOMPUTE_RADIUS) {
+                    if (Math.round(dist) > PRECOMPUTE_RADIUS) {
                         continue;
                     }
                     CoveringVector vector = new CoveringVector(iX, iY, iZ);
@@ -40,21 +42,35 @@ public class Onion {
                     if (layer < 0 || layer >= LAYERS.length) {
                         System.err.println("FAILURE: Position " + vector.toString() + " is located in layer " + layer + " which is outside our computed area!");
                     } else {
-                        LAYERS[layer].add(vector);
+                        if (LAYERS[layer].add(vector)) {
+                            createdNodes++;
+                        }
                     }
                 }
             }
         }
+
+        for (int i = 0; i <= PRECOMPUTE_RADIUS; i++) {
+            OnionLayer layer = LAYERS[i];
+            System.out.println("Nodes in layer <" + i + ">: " + layer.size());
+        }
+
         System.out.println("Computing occlusion...");
         // Now, iterate over each layer except the last one and compute the covered positions...
+        final AtomicLong totallyOccludedPositions = new AtomicLong(0);
         for (int i = 0; i < LAYERS.length - 1; i++) {
             OnionLayer next = LAYERS[i+1];
-            LAYERS[i].forEach(cv -> computeCoveredPositions(cv, next));
+            LAYERS[i].forEach(cv -> computeCoveredPositions(cv, next, totallyOccludedPositions));
         }
+        final long occlusions = totallyOccludedPositions.get();
+        System.out.println("Created nodes: " + createdNodes);
+        System.out.println("Created occlusions: " + occlusions);
+        System.out.println("Average occlusions: " + Math.round(((double) occlusions) / ((double) (createdNodes - LAYERS[LAYERS.length - 1].size()))));
         System.out.println("Done!");
     }
 
-    protected static void computeCoveredPositions(CoveringVector position, OnionLayer nextLayer) {
+    // TODO: This does not seem to be correct!
+    protected static void computeCoveredPositions(CoveringVector position, OnionLayer nextLayer, AtomicLong totallyOccludedPositions) {
         for (CoveringVector toTest : nextLayer) {
             // Danger: This will maybe cut off data!
             byte deltaX = (byte) (toTest.x() - position.x());
@@ -64,6 +80,7 @@ public class Onion {
                 if (position.coveredPositions().inBounds(deltaX, deltaY, deltaZ)) {
                     position.coveredPositions().set(deltaX, deltaY, deltaZ);
                 }
+                totallyOccludedPositions.getAndIncrement();
             }
         }
     }
