@@ -1,6 +1,5 @@
 package de.dertoaster.extraevents.api.util.math.geometry;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.bukkit.util.Vector;
 
