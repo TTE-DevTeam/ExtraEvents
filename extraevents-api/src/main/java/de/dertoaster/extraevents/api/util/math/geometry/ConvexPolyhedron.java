@@ -5,11 +5,11 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class NonConvexPolyhedron {
+public class ConvexPolyhedron {
 
     protected final List<Plane3D> planes = new ArrayList<>();
 
-    public NonConvexPolyhedron(final Set<Triple<Vector, Vector, Vector>> planeVectors, final Vector pointInPolyhedron) {
+    public ConvexPolyhedron(final Set<Triple<Vector, Vector, Vector>> planeVectors, final Vector pointInPolyhedron) {
         for (Triple<Vector, Vector, Vector> entry : planeVectors) {
             Plane3D plane3D = new Plane3D(entry.getLeft(), entry.getMiddle(), entry.getRight(), pointInPolyhedron);
             this.planes.add(plane3D);
