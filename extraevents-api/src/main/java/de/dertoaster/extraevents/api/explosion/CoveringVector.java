@@ -1,13 +1,18 @@
 package de.dertoaster.extraevents.api.explosion;
 
 import de.dertoaster.extraevents.api.util.Byte3DBitmap;
+import de.dertoaster.extraevents.api.util.math.geometry.NonConvexPolyhedron;
+import org.apache.commons.lang3.NotImplementedException;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public record CoveringVector(
         byte x,
         byte y,
         byte z,
         // TODO Replace with normal reference list and test memory requirements!
-        Byte3DBitmap coveredPositions
+        Set<CoveringVector> coveredPositions
 ) {
 
     private static final float[] CORNERS = {
@@ -24,7 +29,8 @@ public record CoveringVector(
     public CoveringVector(byte x, byte y, byte z) {
         // TODO: Calculate the proper box that this vector can occlude!
         // TODO: Implement the above, we need more than 32GB of memory when computing 64m radius!
-        this(x, y, z, new Byte3DBitmap((int) (1 + (Math.round(Math.sqrt((x * x) + (y * y) + (z * z)))))));
+//        this(x, y, z, new Byte3DBitmap((int) (1 + (Math.round(Math.sqrt((x * x) + (y * y) + (z * z)))))));
+        this(x, y, z, new HashSet<>());
     }
 
     @Override
@@ -58,12 +64,12 @@ public record CoveringVector(
             byte bx, byte by, byte bz) {
 
         // --- Early Out 1: Compare distance; If B is further away than A, than B can't occlude A
-        int da2 = ax * ax + ay * ay + az * az;
-        int db2 = bx * bx + by * by + bz * bz;
+        float da2 = ax * ax + ay * ay + az * az;
+        float db2 = bx * bx + by * by + bz * bz;
         if (db2 >= da2) return false;
 
         // --- Early Out 2: Check rough direction
-        int dot = ax * bx + ay * by + az * bz;
+        float dot = ax * bx + ay * by + az * bz;
         if (dot <= 0) return false;
 
         // --- Bounding Box of B
@@ -77,6 +83,9 @@ public record CoveringVector(
         float aMinZ = az - 0.5f, aMaxZ = az + 0.5f;
 
         // --- Test for each vertex of A
+        // TODO: Change implementation
+        // Instead, use each vertex and add and subtract a small vector from it. If it is in "our" cube, skip to the next vertex
+        // From those remaining vertices,
         for (int i = 0; i < CORNERS.length; i += 3) {
 
             float dx = ax + CORNERS[i];
@@ -148,6 +157,14 @@ public record CoveringVector(
         }
 
         return tMin >= 0 ? tMin : -1;
+    }
+
+    NonConvexPolyhedron createCoveringPolyhedron() {
+        // Walk over all vertices of a cube
+        // Discard the vertices that would cut into the cube in either direction towards zero
+        // That way we can sort out the vertices we don't need for the convex hull
+        // Then, create the polyhedron from the remaining vertices
+        throw new NotImplementedException();
     }
 
 }
