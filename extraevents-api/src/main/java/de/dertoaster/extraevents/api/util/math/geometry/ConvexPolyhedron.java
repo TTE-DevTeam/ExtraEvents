@@ -9,7 +9,12 @@ public class ConvexPolyhedron {
 
     protected final List<Plane3D> planes = new ArrayList<>();
 
-    public ConvexPolyhedron(final Set<Triple<Vector, Vector, Vector>> planeVectors, final Vector pointInPolyhedron) {
+    public ConvexPolyhedron(final Set<Triple<Vector, Vector, Vector>> planeVectors, final Vector pointInPolyhedron, Plane3D... preCheckPlanes) {
+        if (preCheckPlanes != null) {
+            for (int i = 0; i < preCheckPlanes.length; i++) {
+                planes.add(preCheckPlanes[i]);
+            }
+        }
         for (Triple<Vector, Vector, Vector> entry : planeVectors) {
             Plane3D plane3D = new Plane3D(entry.getLeft(), entry.getMiddle(), entry.getRight(), pointInPolyhedron);
             this.planes.add(plane3D);

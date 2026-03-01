@@ -58,9 +58,10 @@ public class Onion {
         System.out.println("Computing occlusion...");
         // Now, iterate over each layer except the last one and compute the covered positions...
         final AtomicLong totallyOccludedPositions = new AtomicLong(0);
-        for (int i = 0; i < LAYERS.length - 1; i++) {
-            OnionLayer next = LAYERS[i+1];
-            LAYERS[i].forEach(cv -> computeCoveredPositions(cv, next, totallyOccludedPositions));
+        // TODO: Use multithreading for this, otherwise it will take forever!
+        for (int i = 0; i < LAYERS.length; i++) {
+            final int layerIndex = i;
+            LAYERS[i].forEach(cv -> computeCoveredPositions(cv, layerIndex, totallyOccludedPositions));
         }
         final long occlusions = totallyOccludedPositions.get();
         System.out.println("Created nodes: " + createdNodes);
@@ -70,17 +71,21 @@ public class Onion {
     }
 
     // TODO: This does not seem to be correct!
-    protected static void computeCoveredPositions(CoveringVector position, OnionLayer nextLayer, AtomicLong totallyOccludedPositions) {
-        for (CoveringVector toTest : nextLayer) {
-            // Danger: This will maybe cut off data!
-            byte deltaX = (byte) (toTest.x() - position.x());
-            byte deltaY = (byte) (toTest.y() - position.y());
-            byte deltaZ = (byte) (toTest.z() - position.z());
-            if (position.occludes(deltaX, deltaY, deltaZ)) {
-                if (position.coveredPositions().inBounds(deltaX, deltaY, deltaZ)) {
-                    position.coveredPositions().set(deltaX, deltaY, deltaZ);
+    protected static void computeCoveredPositions(CoveringVector position, int layerIndex, AtomicLong totallyOccludedPositions) {
+        for (int i = layerIndex; i < LAYERS.length; i++) {
+            OnionLayer nextLayer = LAYERS[i];
+            for (CoveringVector toTest : nextLayer) {
+                // Danger: This will maybe cut off data!
+                byte deltaX = (byte) (toTest.x() - position.x());
+                byte deltaY = (byte) (toTest.y() - position.y());
+                byte deltaZ = (byte) (toTest.z() - position.z());
+                if (position.occludes(deltaX, deltaY, deltaZ)) {
+//                if (position.coveredPositions().inBounds(deltaX, deltaY, deltaZ)) {
+//                    position.coveredPositions().set(deltaX, deltaY, deltaZ);
+//                }
+                    position.coveredPositions().add(toTest);
+                    totallyOccludedPositions.getAndIncrement();
                 }
-                totallyOccludedPositions.getAndIncrement();
             }
         }
     }
