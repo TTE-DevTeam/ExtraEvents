@@ -38,7 +38,7 @@ public class DispenseBehaviorHelper {
     DefaultDispenseItemBehavior spawnEggDispenseItemBehavior = new DefaultDispenseItemBehavior() {
       public ItemStack execute(BlockSource blockSource, ItemStack item) {
         Direction direction = (Direction)blockSource.state().getValue(DispenserBlock.FACING);
-        EntityType<?> type = ((SpawnEggItem)item.getItem()).getType(blockSource.level().registryAccess(), item);
+        EntityType<?> type = ((SpawnEggItem)item.getItem()).getType(item);
         ServerLevel serverLevel = blockSource.level();
         ItemStack singleItemStack = item.copyWithCount(1);
         Block block = CraftBlock.at(serverLevel, blockSource.pos());
@@ -62,7 +62,7 @@ public class DispenseBehaviorHelper {
             }
 
             singleItemStack = CraftItemStack.unwrap(event.getItem());
-            type = ((SpawnEggItem)singleItemStack.getItem()).getType(serverLevel.registryAccess(), singleItemStack);
+            type = ((SpawnEggItem)singleItemStack.getItem()).getType(singleItemStack);
           }
 
           try {
