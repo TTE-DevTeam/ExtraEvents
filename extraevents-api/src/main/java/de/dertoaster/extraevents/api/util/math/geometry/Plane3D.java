@@ -14,9 +14,15 @@ public class Plane3D {
 
     private boolean lessThanZeroIsbehindPlane;
 
-    public Plane3D(final Vector v1, final Vector v2, final Vector supportVector, final Vector pointBehindPlane) {
-        this(v1.normalize().crossProduct(v2.normalize()), supportVector, pointBehindPlane);
+    public createFromPoints(final Vector pointA, final Vector pointB, final Vector pointC, final Vector pointBehindPlane) {
+        // TODO: Implement
+        return null;
     }
+    
+    public createFromPQAndSupport(final Vector v1, final Vector v2, final Vector supportVector, final Vector pointBehindPlane) {
+        return new Plane3D(v1.normalize().crossProduct(v2.normalize()), supportVector, pointBehindPlane);
+    }
+    
     public Plane3D(final Vector planeNormal, final Vector supportVector, final Vector pointBehindPlane) {
         planeNormal.normalize();
         this.a = planeNormal.getX();
