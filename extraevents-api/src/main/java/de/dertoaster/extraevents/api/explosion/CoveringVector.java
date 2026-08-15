@@ -222,6 +222,7 @@ public record CoveringVector(
                 }
 
                 if (!(pos && neg)) {
+                    // 3 point list
                     planeList.add(Triple.of(currentVertex, otherVertex, self));
                 }
             }
@@ -229,7 +230,8 @@ public record CoveringVector(
         // Step 3) Per edge, create a plane using the 2 endpoints of the edge on the cube and the center
         // Step 4) Orient the plane, use the center of the cube is inner reference point
         final Vector pointInPolyhedron = self.clone().add(self.clone().normalize());
-        final Plane3D preCheckPlane = new Plane3D(self, self, pointInPolyhedron);
+        // We create a plane on "ourselves", our point in space is the normal as well as the support vector
+        final Plane3D preCheckPlane = Plane3D.createFromNormalAndSupport(self.clone().normalize(), self, pointInPolyhedron);
 
         return new ConvexPolyhedron(planeList, pointInPolyhedron, preCheckPlane);
     }
