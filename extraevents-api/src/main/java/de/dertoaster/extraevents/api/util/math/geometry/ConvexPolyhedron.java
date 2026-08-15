@@ -15,8 +15,9 @@ public class ConvexPolyhedron {
                 planes.add(preCheckPlanes[i]);
             }
         }
+        // Structure: Point A, Point B, Point C
         for (Triple<Vector, Vector, Vector> entry : planeVectors) {
-            Plane3D plane3D = new Plane3D(entry.getLeft(), entry.getMiddle(), entry.getRight(), pointInPolyhedron);
+            Plane3D plane3D = Plane3D.createFromPQAndSupport(entry.getLeft(), entry.getMiddle(), entry.getRight(), pointInPolyhedron);
             this.planes.add(plane3D);
         }
         if (this.planes.isEmpty()) {

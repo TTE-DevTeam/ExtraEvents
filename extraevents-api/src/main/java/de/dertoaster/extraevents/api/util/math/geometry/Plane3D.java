@@ -1,6 +1,5 @@
 package de.dertoaster.extraevents.api.util.math.geometry;
 
-
 import org.bukkit.util.Vector;
 
 public class Plane3D {
@@ -14,16 +13,21 @@ public class Plane3D {
 
     private boolean lessThanZeroIsbehindPlane;
 
-    public createFromPoints(final Vector pointA, final Vector pointB, final Vector pointC, final Vector pointBehindPlane) {
-        // TODO: Implement
-        return null;
+    public static Plane3D createFromPoints(final Vector pointA, final Vector pointB, final Vector pointC, final Vector pointBehindPlane) {
+        Vector p = pointA.subtract(pointB).normalize();
+        Vector q = pointA.subtract(pointC).normalize();
+        return createFromPQAndSupport(p, q, pointA.clone(), pointBehindPlane);
     }
     
-    public createFromPQAndSupport(final Vector v1, final Vector v2, final Vector supportVector, final Vector pointBehindPlane) {
-        return new Plane3D(v1.normalize().crossProduct(v2.normalize()), supportVector, pointBehindPlane);
+    public static Plane3D createFromPQAndSupport(final Vector v1, final Vector v2, final Vector supportVector, final Vector pointBehindPlane) {
+        return new Plane3D(v1.clone().normalize().crossProduct(v2.clone().normalize()), supportVector, pointBehindPlane);
+    }
+
+    public static Plane3D createFromNormalAndSupport(Vector normal, final Vector supportVector, final Vector pointBehindPlane) {
+        return new Plane3D(normal.clone().normalize(), supportVector, pointBehindPlane);
     }
     
-    public Plane3D(final Vector planeNormal, final Vector supportVector, final Vector pointBehindPlane) {
+    protected Plane3D(final Vector planeNormal, final Vector supportVector, final Vector pointBehindPlane) {
         planeNormal.normalize();
         this.a = planeNormal.getX();
         this.b = planeNormal.getY();
