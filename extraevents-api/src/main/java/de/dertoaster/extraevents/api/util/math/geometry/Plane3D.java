@@ -1,5 +1,6 @@
 package de.dertoaster.extraevents.api.util.math.geometry;
 
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public class Plane3D {
@@ -18,7 +19,7 @@ public class Plane3D {
         Vector q = pointA.subtract(pointC).normalize();
         return createFromPQAndSupport(p, q, pointA.clone(), pointBehindPlane);
     }
-    
+
     public static Plane3D createFromPQAndSupport(final Vector v1, final Vector v2, final Vector supportVector, final Vector pointBehindPlane) {
         return new Plane3D(v1.clone().normalize().crossProduct(v2.clone().normalize()), supportVector, pointBehindPlane);
     }

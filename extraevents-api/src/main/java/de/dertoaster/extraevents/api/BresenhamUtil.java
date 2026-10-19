@@ -14,7 +14,7 @@ public class BresenhamUtil {
         }
 
         public IntTuple(ChunkPos chunkPos) {
-            this(chunkPos.x, chunkPos.z);
+            this(chunkPos.x(), chunkPos.z());
         }
     }
 

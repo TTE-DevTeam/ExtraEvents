@@ -45,9 +45,9 @@ public interface IChunkLoadingEntity {
         Vec3 velocityRaw = movementDelta;
         Vec3i velocity = new Vec3i((int) velocityRaw.x(), (int) velocityRaw.y(), (int) velocityRaw.z());
         BlockPos posNext = posCur.offset(velocity);
-        ChunkPos chunkPosCur = new ChunkPos(posCur);
+        ChunkPos chunkPosCur = ChunkPos.containing(posCur);
         // Offset the next position by 2x the distance travelled to smoothen the process
-        ChunkPos chunkPosNext = new ChunkPos(posNext);
+        ChunkPos chunkPosNext = ChunkPos.containing(posNext);
 
         if (chunkPosCur.equals(chunkPosNext)) {
             return;
