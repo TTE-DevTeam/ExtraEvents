@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
   `kotlin-dsl`
 }
@@ -13,16 +15,14 @@ dependencies {
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_17
-  targetCompatibility = JavaVersion.VERSION_17
+  sourceCompatibility = JavaVersion.VERSION_25
+  targetCompatibility = JavaVersion.VERSION_25
 }
 
 kotlin {
   target {
-    compilations.configureEach {
-      kotlinOptions {
-        jvmTarget = "11"
-      }
+    compilerOptions {
+      jvmTarget.set(JvmTarget.fromTarget("25"))
     }
   }
 }
