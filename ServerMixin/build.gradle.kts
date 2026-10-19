@@ -1,6 +1,6 @@
 plugins {
   id("mod.base-conventions")
-  id("io.github.goooler.shadow") version "8.1.7"
+  id("com.gradleup.shadow") version "9.3.1"
   id("io.papermc.paperweight.userdev") version "2.0.0-beta.23"
 }
 

@@ -8,7 +8,7 @@ plugins {
   `java-library`
   id("com.diffplug.spotless")
 
-  id("com.github.johnrengelman.shadow")
+  id("com.gradleup.shadow")
   id("io.papermc.paperweight.userdev")
 }
 
